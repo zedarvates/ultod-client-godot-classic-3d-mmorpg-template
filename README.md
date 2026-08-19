@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/banner-godot-classic-3d.png" alt="UltOd Client Godot Classic 3D MMORPG Template" width="100%" />
+<img src="assets/banner-godot-classic-3d.jpg" alt="UltOd Client Godot Classic 3D MMORPG Template" width="100%" />
 
 ### UltOd Client Godot Classic 3D MMORPG Template
 
