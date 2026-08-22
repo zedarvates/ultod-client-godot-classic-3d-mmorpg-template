@@ -1,0 +1,23 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; but it can also be edited manually.
+
+config_version=5
+
+[application]
+
+config/name="UltOd Client Godot Classic 3D MMORPG Template"
+config/description="Minimal isolated presentation shell for Godot 4 Classic 3D MMORPG client."
+config/version="0.1.0"
+run/main_scene="res://scenes/bootstrap.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+textures/vram_compression/import_etc2_astc=true

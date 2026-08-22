@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://c3dboot01pres"]
+
+[ext_resource type="Script" path="res://scenes/bootstrap.gd" id="1_boot"]
+[ext_resource type="PackedScene" path="res://scenes/player_3d_presentation.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/zone_stub.tscn" id="3_zone"]
+[ext_resource type="PackedScene" path="res://scenes/ui_stub.tscn" id="4_ui"]
+
+[node name="Bootstrap" type="Node3D"]
+script = ExtResource("1_boot")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+shadow_enabled = true
+
+[node name="ZoneStub" parent="." instance=ExtResource("3_zone")]
+
+[node name="Player3DPresentation" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="UIStub" parent="." instance=ExtResource("4_ui")]
+
+[node name="StatusLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -3)
+pixel_size = 0.005
+text = "UltOd Classic 3D Shell Initializing..."
+font_size = 32
+outline_size = 4
