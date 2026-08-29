@@ -46,3 +46,52 @@ jobs:
 
           print(f"Successfully validated {len(md_files)} markdown files and all internal links.")
           PY
+      - name: Validate proof metadata and authority boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          manifest = json.loads(Path("net/compatibility-manifest.json").read_text(encoding="utf-8"))
+          project = Path("project.godot").read_text(encoding="utf-8")
+
+          if manifest.get("schema") != "uo.network-compatibility/v1":
+              raise SystemExit("Unsupported compatibility manifest schema")
+
+          proof = manifest["proof"]
+          client = manifest["client"]
+          authority = manifest["authority"]
+          licensing = manifest["licensing_boundary"]
+
+          if any(authority.values()):
+              raise SystemExit("Public client authority boundary must remain false for critical server-owned decisions")
+
+          if proof["zig_compatibility"]:
+              if proof["level"] not in {"REAL_SERVER_E2E", "ADVERSARIAL_E2E", "RELEASE_PROVEN"}:
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires a real-server proof level")
+              if not proof["canonical_server_repository"]:
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires a canonical private server repository")
+              if not re.fullmatch(r"[0-9a-f]{40}", proof["canonical_server_sha"] or ""):
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires an exact 40-hex server SHA")
+              if not proof["zig_toolchain"] or not proof["protocol_revision"]:
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires toolchain and protocol revision")
+
+          if client["engine_target_proven"]:
+              if client["engine_target_baseline"] != "4.7.2-stable":
+                  raise SystemExit("Unexpected proven Godot target")
+              if client["engine_declared_in_project"] != "4.7.2":
+                  raise SystemExit("FAKE-GREEN: engine proof cannot be true while project declaration remains historical")
+              if 'config/features=PackedStringArray("4.7.2", "Forward Plus")' not in project:
+                  raise SystemExit("FAKE-GREEN: project.godot does not match the claimed proven engine baseline")
+
+          if licensing["public_template_license"] != "MIT":
+              raise SystemExit("Unexpected public template license boundary")
+          if licensing["contains_private_server_implementation"] is not False:
+              raise SystemExit("Public starter must not contain private server implementation")
+          if "proprietary-commercial" not in licensing["private_server_policy"]:
+              raise SystemExit("Private server commercial boundary is missing")
+
+          print("Proof metadata, authority boundary, and license boundary validated.")
+          PY
