@@ -21,6 +21,16 @@ Do not change `config/features` merely to make the repository look current. The 
 7. Only then update project metadata to the proven baseline.
 8. Repeat the validation after the metadata change.
 
+Use the repository validator and keep the receipt local:
+
+```bash
+python tools/validate_godot_4_7_2.py \
+  --godot /path/to/godot-4.7.2 \
+  --evidence .evidence/godot-4.7.2-classic.json
+```
+
+`.evidence/` is intentionally gitignored. A receipt may be retained as controlled test evidence, but it must not be published automatically or confused with Zig/network proof.
+
 ## Evidence states
 
 - `DECLARED_4_3`: current repository metadata.
