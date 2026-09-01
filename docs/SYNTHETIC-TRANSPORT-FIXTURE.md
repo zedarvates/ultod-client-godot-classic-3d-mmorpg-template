@@ -1,6 +1,6 @@
 # Synthetic transport fixture
 
-Status: **prepared, runtime proof pending**.
+Status: **PREPARED / CI-GUARDED — runtime proof pending**.
 
 The public Godot starter contains a deterministic, socket-free transport fixture for exercising the client intent/state-machine boundary before the canonical Zig server is available.
 
@@ -24,17 +24,21 @@ It does **not** prove:
 - `net/transport_adapter.gd` — abstract transport lifecycle;
 - `net/synthetic_transport.gd` — deterministic local test authority with no socket;
 - `tests/synthetic_transport_fixture.gd` — offline/auth/movement/forbidden-authority/drop/resume assertions;
-- `tools/validate_synthetic_transport.py` — Godot 4.7.2 runner and JSON evidence writer.
+- `tools/validate_godot_4_7_2.py` — exact engine/import/bootstrap proof;
+- `tools/validate_synthetic_transport.py` — Godot 4.7.2 synthetic runner and JSON evidence writer;
+- `tools/run_p0_local_proof.py` — fail-closed one-command orchestrator using the same exact Godot binary for both gates.
 
-## Executable proof
+## One-command local proof
 
 With an exact Godot 4.7.2-stable binary:
 
 ```bash
-python tools/validate_synthetic_transport.py --godot /path/to/godot
+python tools/run_p0_local_proof.py --godot /path/to/godot
 ```
 
-The receipt is written under `.evidence/` and is intentionally ignored by Git.
+The orchestrator first executes the engine/import/bootstrap validator. If that fails, it stops and does not run the synthetic transport proof. If it succeeds, the synthetic fixture executes with the **same** Godot binary.
+
+Receipts are written under `.evidence/`, which is intentionally ignored by Git.
 
 A successful run demonstrates only that the public Godot client boundary executes the named deterministic fixture under the named engine version. Promotion to `REAL_SERVER_E2E` still requires the pinned private canonical Zig baseline and a real server scenario.
 
