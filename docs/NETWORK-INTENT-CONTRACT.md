@@ -6,6 +6,8 @@ This document defines the public client-side intent boundary shared by the Godot
 
 `net/intent_contract.gd` is **transport-independent client validation only**.
 
+This contract does not prove compatibility with the private canonical Zig server.
+
 It does not:
 - open a socket;
 - encode the private canonical Zig wire protocol;
