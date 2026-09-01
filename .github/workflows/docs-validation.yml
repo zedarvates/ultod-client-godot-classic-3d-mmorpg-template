@@ -46,8 +46,10 @@ jobs:
 
           print(f"Successfully validated {len(md_files)} markdown files and all internal links.")
           PY
-      - name: Syntax-check local Godot proof tool
-        run: python -m py_compile tools/validate_godot_4_7_2.py
+      - name: Syntax-check local Godot proof tools
+        run: |
+          python -m py_compile tools/validate_godot_4_7_2.py
+          python -m py_compile tools/validate_synthetic_transport.py
       - name: Guard transport-independent intent contract
         shell: bash
         run: |
@@ -67,6 +69,33 @@ jobs:
           if "does not prove compatibility" not in doc.lower():
               raise SystemExit("Intent documentation must explicitly deny live Zig proof")
           print("Transport-independent intent boundary validated.")
+          PY
+      - name: Guard synthetic transport fixture boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          synthetic = Path("net/synthetic_transport.gd").read_text(encoding="utf-8")
+          scenario = Path("tests/synthetic_transport_fixture.gd").read_text(encoding="utf-8")
+          runner = Path("tools/validate_synthetic_transport.py").read_text(encoding="utf-8")
+          doc = Path("docs/SYNTHETIC-TRANSPORT-FIXTURE.md").read_text(encoding="utf-8")
+
+          for marker in ("SYNTHETIC_FIXTURE_ONLY", "simulate_drop", "authoritative_transform", "synthetic_connection_dropped"):
+              if marker not in synthetic:
+                  raise SystemExit(f"Synthetic fixture missing required marker: {marker}")
+          for marker in ("transport_not_online", "client_authority_field_forbidden", '"resume"', "canonical_zig_compatibility_proven"):
+              if marker not in scenario:
+                  raise SystemExit(f"Synthetic scenario missing assertion marker: {marker}")
+          for marker in ("4.7.2.stable", "SYNTHETIC_FIXTURE_ONLY", "canonical_zig_compatibility_proven"):
+              if marker not in runner:
+                  raise SystemExit(f"Synthetic proof runner missing marker: {marker}")
+          for forbidden in ("WebSocketPeer", "WebSocketClient", "ENetMultiplayerPeer", "PacketPeerUDP", "StreamPeerTCP", "http://", "https://", "tcp://", "udp://"):
+              if forbidden in synthetic:
+                  raise SystemExit(f"Synthetic fixture must remain socket-free: {forbidden}")
+          if "runtime proof pending" not in doc.lower() or "does **not** prove" not in doc.lower():
+              raise SystemExit("Synthetic fixture documentation must deny runtime/Zig promotion")
+          print("Synthetic fixture structure validated; no runtime proof claimed by this CI job.")
           PY
       - name: Validate proof metadata and authority boundary
         shell: bash
