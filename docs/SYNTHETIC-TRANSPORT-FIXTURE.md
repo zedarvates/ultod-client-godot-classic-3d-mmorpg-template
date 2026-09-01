@@ -55,6 +55,10 @@ The fixture is expected to prove that:
 - synthetic resume preserves fixture-owned state;
 - closing returns to a disconnected state.
 
+## Validation state
+
+Latest hosted structural gate after adding the local orchestrator: **Validate Documentation run #29 — passed**. This CI result still does not execute Godot.
+
 ## Licensing boundary
 
 This synthetic fixture is original public starter code under MIT. It contains no private Zig implementation, private protocol dump, production endpoint, asset/lore, or commercial configuration. The private Ultimate Odycer server/game implementation remains proprietary/commercial, all rights reserved unless explicitly licensed otherwise.
