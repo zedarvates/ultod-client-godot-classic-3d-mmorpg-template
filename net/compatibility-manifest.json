@@ -1,0 +1,46 @@
+{
+  "schema": "uo.network-compatibility/v1",
+  "client": {
+    "name": "ultod-client-godot-classic-3d-mmorpg-template",
+    "template_version": "0.1.0",
+    "intent_contract": "network-intent-v1",
+    "engine_declared_in_project": "4.3",
+    "engine_target_baseline": "4.7.2-stable",
+    "engine_target_proven": false
+  },
+  "proof": {
+    "level": "DOCUMENTED",
+    "zig_compatibility": false,
+    "canonical_server_repository": null,
+    "canonical_server_sha": null,
+    "zig_toolchain": null,
+    "protocol_revision": null,
+    "blocker": "Pin the private canonical Zig baseline and prove Godot 4.7.2 project loading before live interoperability work."
+  },
+  "evidence": {
+    "intent_contract": "documented",
+    "synthetic_network_fixture": "not_implemented",
+    "godot_4_7_2_project_load": "not_proven",
+    "godot_4_7_2_bootstrap_run": "not_proven",
+    "authentication": "not_implemented",
+    "realm_handoff": "not_implemented",
+    "movement_transport": "not_implemented",
+    "authoritative_reconciliation": "not_implemented",
+    "reconnect": "not_implemented",
+    "session_resume": "not_implemented",
+    "tls_wss_live_server": "not_proven"
+  },
+  "authority": {
+    "client_may_author_damage": false,
+    "client_may_author_inventory": false,
+    "client_may_author_currency": false,
+    "client_may_author_progression": false,
+    "client_may_author_permissions": false,
+    "client_may_validate_movement_speed": false
+  },
+  "licensing_boundary": {
+    "public_template_license": "MIT",
+    "contains_private_server_implementation": false,
+    "private_server_policy": "proprietary-commercial-all-rights-reserved-unless-explicitly-licensed"
+  }
+}

@@ -46,3 +46,104 @@ jobs:
 
           print(f"Successfully validated {len(md_files)} markdown files and all internal links.")
           PY
+      - name: Syntax-check local Godot proof tools
+        run: |
+          python -m py_compile tools/validate_godot_4_7_2.py
+          python -m py_compile tools/validate_synthetic_transport.py
+          python -m py_compile tools/run_p0_local_proof.py
+      - name: Guard transport-independent intent contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("net/intent_contract.gd")
+          text = path.read_text(encoding="utf-8")
+          required = ['"session"', '"move"', '"interact"', '"talk"', 'client_authority_field_forbidden']
+          for marker in required:
+              if marker not in text:
+                  raise SystemExit(f"Intent contract missing required marker: {marker}")
+          for forbidden in ("WebSocketPeer", "WebSocketClient", "ENetMultiplayerPeer", "PacketPeerUDP", "http://", "https://"):
+              if forbidden in text:
+                  raise SystemExit(f"Intent contract must remain transport-independent: {forbidden}")
+          doc = Path("docs/NETWORK-INTENT-CONTRACT.md").read_text(encoding="utf-8")
+          if "does not prove compatibility" not in doc.lower():
+              raise SystemExit("Intent documentation must explicitly deny live Zig proof")
+          print("Transport-independent intent boundary validated.")
+          PY
+      - name: Guard synthetic transport fixture boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          synthetic = Path("net/synthetic_transport.gd").read_text(encoding="utf-8")
+          scenario = Path("tests/synthetic_transport_fixture.gd").read_text(encoding="utf-8")
+          runner = Path("tools/validate_synthetic_transport.py").read_text(encoding="utf-8")
+          doc = Path("docs/SYNTHETIC-TRANSPORT-FIXTURE.md").read_text(encoding="utf-8")
+
+          for marker in ("SYNTHETIC_FIXTURE_ONLY", "simulate_drop", "authoritative_transform", "synthetic_connection_dropped"):
+              if marker not in synthetic:
+                  raise SystemExit(f"Synthetic fixture missing required marker: {marker}")
+          for marker in ("transport_not_online", "client_authority_field_forbidden", '"resume"', "canonical_zig_compatibility_proven"):
+              if marker not in scenario:
+                  raise SystemExit(f"Synthetic scenario missing assertion marker: {marker}")
+          for marker in ("4.7.2.stable", "SYNTHETIC_FIXTURE_ONLY", "canonical_zig_compatibility_proven"):
+              if marker not in runner:
+                  raise SystemExit(f"Synthetic proof runner missing marker: {marker}")
+          for forbidden in ("WebSocketPeer", "WebSocketClient", "ENetMultiplayerPeer", "PacketPeerUDP", "StreamPeerTCP", "http://", "https://", "tcp://", "udp://"):
+              if forbidden in synthetic:
+                  raise SystemExit(f"Synthetic fixture must remain socket-free: {forbidden}")
+          if "runtime proof pending" not in doc.lower() or "does **not** prove" not in doc.lower():
+              raise SystemExit("Synthetic fixture documentation must deny runtime/Zig promotion")
+          print("Synthetic fixture structure validated; no runtime proof claimed by this CI job.")
+          PY
+      - name: Validate proof metadata and authority boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          manifest = json.loads(Path("net/compatibility-manifest.json").read_text(encoding="utf-8"))
+          project = Path("project.godot").read_text(encoding="utf-8")
+
+          if manifest.get("schema") != "uo.network-compatibility/v1":
+              raise SystemExit("Unsupported compatibility manifest schema")
+
+          proof = manifest["proof"]
+          client = manifest["client"]
+          authority = manifest["authority"]
+          licensing = manifest["licensing_boundary"]
+
+          if any(authority.values()):
+              raise SystemExit("Public client authority boundary must remain false for critical server-owned decisions")
+
+          if proof["zig_compatibility"]:
+              if proof["level"] not in {"REAL_SERVER_E2E", "ADVERSARIAL_E2E", "RELEASE_PROVEN"}:
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires a real-server proof level")
+              if not proof["canonical_server_repository"]:
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires a canonical private server repository")
+              if not re.fullmatch(r"[0-9a-f]{40}", proof["canonical_server_sha"] or ""):
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires an exact 40-hex server SHA")
+              if not proof["zig_toolchain"] or not proof["protocol_revision"]:
+                  raise SystemExit("FAKE-GREEN: Zig compatibility requires toolchain and protocol revision")
+
+          if client["engine_target_proven"]:
+              if client["engine_target_baseline"] != "4.7.2-stable":
+                  raise SystemExit("Unexpected proven Godot target")
+              if client["engine_declared_in_project"] != "4.7.2":
+                  raise SystemExit("FAKE-GREEN: engine proof cannot be true while project declaration remains historical")
+              if 'config/features=PackedStringArray("4.7.2", "Forward Plus")' not in project:
+                  raise SystemExit("FAKE-GREEN: project.godot does not match the claimed proven engine baseline")
+
+          if licensing["public_template_license"] != "MIT":
+              raise SystemExit("Unexpected public template license boundary")
+          if licensing["contains_private_server_implementation"] is not False:
+              raise SystemExit("Public starter must not contain private server implementation")
+          if "proprietary-commercial" not in licensing["private_server_policy"]:
+              raise SystemExit("Private server commercial boundary is missing")
+
+          print("Proof metadata, authority boundary, and license boundary validated.")
+          PY
