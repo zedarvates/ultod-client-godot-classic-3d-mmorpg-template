@@ -48,6 +48,26 @@ jobs:
           PY
       - name: Syntax-check local Godot proof tool
         run: python -m py_compile tools/validate_godot_4_7_2.py
+      - name: Guard transport-independent intent contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("net/intent_contract.gd")
+          text = path.read_text(encoding="utf-8")
+          required = ['"session"', '"move"', '"interact"', '"talk"', 'client_authority_field_forbidden']
+          for marker in required:
+              if marker not in text:
+                  raise SystemExit(f"Intent contract missing required marker: {marker}")
+          for forbidden in ("WebSocketPeer", "WebSocketClient", "ENetMultiplayerPeer", "PacketPeerUDP", "http://", "https://"):
+              if forbidden in text:
+                  raise SystemExit(f"Intent contract must remain transport-independent: {forbidden}")
+          doc = Path("docs/NETWORK-INTENT-CONTRACT.md").read_text(encoding="utf-8")
+          if "does not prove compatibility" not in doc.lower():
+              raise SystemExit("Intent documentation must explicitly deny live Zig proof")
+          print("Transport-independent intent boundary validated.")
+          PY
       - name: Validate proof metadata and authority boundary
         shell: bash
         run: |
