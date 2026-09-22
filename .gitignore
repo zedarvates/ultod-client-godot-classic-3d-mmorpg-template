@@ -1,0 +1,12 @@
+# Godot 4
+.godot/
+/android/
+
+# Builds
+build/
+dist/
+node_modules/
+
+# OS noise
+.DS_Store
+Thumbs.db
